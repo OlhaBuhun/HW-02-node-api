@@ -3,9 +3,12 @@ import contactsControlles from "../controllers/contactsControllers.js";
 import validateBody from "../middlewares/validateBody.js";
 import isEmptyBody from "../middlewares/isEmptyBody.js";
 import isValidId from "../middlewares/isValidId.js";
+import authenticate from "../middlewares/authenticate.js";
 import { createContactSchema, updateContactSchema, updateFavoriteSchema } from "../models/Contact.js";
 
 const contactsRouter = express.Router();
+
+contactsRouter.use(authenticate);
 
 contactsRouter.get("/", contactsControlles.getAllContacts);
 

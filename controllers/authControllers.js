@@ -1,10 +1,11 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 import User from "../models/User.js";
-
 import HttpError from "../helpers/HttpError.js";
-
 import { ctrlWrapper } from "../decorators/index.js";
+
+const { JWT_SECRET } = process.env;
 
 const signup = async (req, res) => {
 	const { email, password } = req.body;
@@ -31,7 +32,11 @@ const signin = async (req, res) => {
 		throw HttpError(401);
 	}
 
-	const token = "sjdjd.23nd.345";
+	const payload = {
+		id: user._id,
+	};
+
+	const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
 
 	res.json({
 		token,
