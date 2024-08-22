@@ -9,12 +9,12 @@ const userSchema = new Schema(
 	{
 		password: {
 			type: String,
-      minLength: 6,
+			minLength: 6,
 			required: [true, "Password is required"],
 		},
 		email: {
 			type: String,
-      match: mailformat,
+			match: mailformat,
 			required: [true, "Email is required"],
 			unique: true,
 		},
@@ -38,13 +38,14 @@ userSchema.pre("findOneAndUpdate", preUpdate);
 userSchema.post("findOneAndUpdate", handleSaveError);
 
 export const userSignupShema = Joi.object({
-  password: Joi.string().min(6).required(),
-  email: Joi.string().pattern(mailformat).required(),
+	password: Joi.string().min(6).required(),
+	email: Joi.string().pattern(mailformat).required(),
+	subscription: Joi.string().valid("starter", "pro", "business").required(),
 });
 
 export const userSigninShema = Joi.object({
-  password: Joi.string().min(6).required(),
-  email: Joi.string().pattern(mailformat).required(),
+	password: Joi.string().min(6).required(),
+	email: Joi.string().pattern(mailformat).required(),
 });
 
 const User = model("user", userSchema);
