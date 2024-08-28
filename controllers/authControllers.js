@@ -26,7 +26,7 @@ const signin = async (req, res) => {
 	const { email, password, subscription } = req.body;
 	const user = await User.findOne({ email });
 	if (!user) {
-		throw HttpError(401);
+		throw HttpError(401,"Email or password is wrong");
 	}
 	const passwwordCompare = await bcrypt.compare(password, user.password);
 	if (!passwwordCompare) {
