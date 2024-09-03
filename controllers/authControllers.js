@@ -1,5 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import fs from "fs/promises";
+import path from "path";
+import gravatar from "gravatar";
 
 import User from "../models/User.js";
 import HttpError from "../helpers/HttpError.js";
@@ -7,14 +10,19 @@ import { ctrlWrapper } from "../decorators/index.js";
 
 const { JWT_SECRET } = process.env;
 
+const avatarsPath = path.resolve("public", "avatars");
+
 const signup = async (req, res) => {
-	const { email, password, subscription } = req.body;
+	const { email, password } = req.body;
+
 	const user = await User.findOne({ email });
+
 	if (user) {
 		throw HttpError(409, "Email already in use");
 	}
 	const hashPassword = await bcrypt.hash(password, 10);
-	const newUser = await User.create({ ...req.body, password: hashPassword });
+	const avatarUrl = gravatar.url(email);
+	const newUser = await User.create({ ...req.body, password: hashPassword, avatarUrl });
 
 	res.status(201).json({
 		email: newUser.email,
@@ -76,10 +84,28 @@ const updateStatusUser = async (req, res) => {
 	res.json(result);
 };
 
+const updateAvatar = async (req, res) => {
+	const { _id } = req.user;
+	const { path: oldPath, originalname } = req.file;
+	const filename = `${_id}_${originalname}`;
+	const newPath = path.join(avatarsPath, filename);
+
+	await fs.rename(oldPath, newPath);
+
+	const avatarUrl = path.join("public", "avatars", filename);
+
+	await User.findByIdAndUpdate(_id, { avatarUrl });
+
+	res.json({
+		avatarUrl,
+	});
+};
+
 export default {
 	signup: ctrlWrapper(signup),
 	signin: ctrlWrapper(signin),
 	getCurrent: ctrlWrapper(getCurrent),
 	signout: ctrlWrapper(signout),
 	updateStatusUser: ctrlWrapper(updateStatusUser),
+	updateAvatar: ctrlWrapper(updateAvatar),
 };
