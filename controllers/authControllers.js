@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import fs from "fs/promises";
 import path from "path";
 import gravatar from "gravatar";
+import { Jimp } from "jimp";
 
 import User from "../models/User.js";
 import HttpError from "../helpers/HttpError.js";
@@ -34,7 +35,7 @@ const signin = async (req, res) => {
 	const { email, password, subscription } = req.body;
 	const user = await User.findOne({ email });
 	if (!user) {
-		throw HttpError(401,"Email or password is wrong");
+		throw HttpError(401, "Email or password is wrong");
 	}
 	const passwwordCompare = await bcrypt.compare(password, user.password);
 	if (!passwwordCompare) {
@@ -86,7 +87,14 @@ const updateStatusUser = async (req, res) => {
 
 const updateAvatar = async (req, res) => {
 	const { _id } = req.user;
+	console.log(req.file);
+
 	const { path: oldPath, originalname } = req.file;
+
+	const image = await Jimp.read(oldPath);
+	await image.resize(250, 250);
+	await image.writeAsync(oldPath);
+
 	const filename = `${_id}_${originalname}`;
 	const newPath = path.join(avatarsPath, filename);
 
@@ -96,7 +104,7 @@ const updateAvatar = async (req, res) => {
 
 	await User.findByIdAndUpdate(_id, { avatarUrl });
 
-	res.json({
+	res.status(200).json({
 		avatarUrl,
 	});
 };
